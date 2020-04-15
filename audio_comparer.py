@@ -17,6 +17,7 @@ class AudioComparer():
 
 		rate, data = wav.read(target_name)
 		self.target_fft = rfft(data)
+		self.target_data = data
 
 	def get_fingerprint(self, file_name):
 		duration, fp_encoded = acoustid.fingerprint_file(file_name)
@@ -32,6 +33,8 @@ class AudioComparer():
 			return correlation
 		elif comparison == 'fft':
 			return self.fft_compare(source_name)
+		elif comparison == 'pearson':
+			return self.pearson_compare(source_name)
 		# return self.signal_to_noise(source_name)
 
 	def correlation(self, source_fingerprint):
@@ -57,6 +60,11 @@ class AudioComparer():
 		rate, data = wav.read(file_name)
 		fft_out = rfft(data)
 		return mean_squared_error(self.target_fft, fft_out)
+
+
+	def pearson_compare(self, file_name):
+		rate, data = wav.read(file_name)
+		return stats.pearsonr(data[:,1], self.target_data[:,1])[0]
 		
 
 	def get_ms_frames(self, segment, ms=350):
