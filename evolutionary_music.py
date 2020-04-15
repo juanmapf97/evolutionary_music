@@ -18,12 +18,14 @@ def generate_audio_file(notes):
 		combined += notes_directory.get_audio_note(var)
 	combined.export('data/conc.wav', format = 'wav')
 
-
-target_file = 'data/songs/ode_to_joy.wav'
-number_of_notes = 16
+# Swan - 20
+# Hear & Soul - 18
+# twinkle - 28
+target_file = 'data/songs/heart_soul.wav'
+number_of_notes = 18
 problem = MusicProblem(target_file, number_of_notes)
 population_size = 100
-max_evaluations = 5000
+max_evaluations = 1500
 
 algorithm = GeneticAlgorithm(
 	problem = problem,
@@ -35,13 +37,15 @@ algorithm = GeneticAlgorithm(
 	offspring_population_size = population_size
 )
 
-# initialize progress bar observer
+# Initialize progress bar observer
 algorithm.observable.register(observer = PrintObjectivesObserver())
 
-# run algorithm and set results
+# for i in range(30):
+# Run algorithm and set results
 algorithm.run()
 front = algorithm.get_result()
 
-# create audio file from the best result
+# Create audio file from the best result
 generate_audio_file(front.variables[0])
-print(front)
+	# with open('results/11_results_ode_to_joy.txt', 'a') as f:
+	# 	f.write(f'\n{front}')

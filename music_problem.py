@@ -14,10 +14,10 @@ class MusicProblem(BinaryProblem):
 
 	def __init__(self, target_name: str, number_of_notes: int):
 		self.number_of_notes = number_of_notes
-		self.number_of_variables = 2
+		self.number_of_variables = 3 # Change to add time interval fitness
 		self.number_of_objectives = 1
 		self.number_of_constraints = 0
-		self.number_of_available_notes = 42
+		self.number_of_available_notes = 88
 		self.obj_labels = ['similarity']
 		self.obj_directions = [self.MAXIMIZE]
 		self.audio_comparer = AudioComparer(target_name)
@@ -26,23 +26,25 @@ class MusicProblem(BinaryProblem):
 		self.note_candidates = self.set_frequency_ranges()
 
 	def set_frequency_ranges(self):
-		range_constant = 50
+		range_constant = 20 # List is empty, check what to do
+		
 		sr, audio = wavfile.read(self.audio_comparer.target_name)
 
 		time, frequency, confidence, activation = crepe.predict(audio, sr, step_size=350)
-
+		# print(frequency)
+		# print(confidence)
 		candidates = []
 		for i in range(self.number_of_notes):
 			if i < len(frequency):
 				min_freq = max([frequency[i] - range_constant, 0])
 				max_freq = frequency[i] + range_constant
-				candidate_notes = \
-					filter(
-						lambda i: self.notes_directory.NOTE_FREQUENCIES[i] >= min_freq 
-						and self.notes_directory.NOTE_FREQUENCIES[i] <= max_freq, 
-						range(self.number_of_available_notes)
-					)
-				candidates.append(list(candidate_notes))
+				candidate_notes = [i for i in range(self.number_of_available_notes) if self.notes_directory.get_note_frequency(i) >= min_freq and self.notes_directory.get_note_frequency(i) <= max_freq]
+					# filter(
+					# 	lambda i: self.notes_directory.get_note_frequency(i) >= min_freq 
+					# 	and self.notes_directory.get_note_frequency(i) <= max_freq, 
+					# 	range(self.number_of_available_notes)
+					# )
+				candidates.append(candidate_notes)
 			else:
 				candidates.append(list(range(self.number_of_available_notes)))
 		return candidates
@@ -54,7 +56,7 @@ class MusicProblem(BinaryProblem):
 		combined.export('data/conc.wav', format='wav')
 
 		solution.objectives[0] = \
-			-1 * self.audio_comparer.compare('data/conc.wav')
+			self.audio_comparer.compare('data/conc.wav') * -1
 
 		return solution
 
@@ -65,8 +67,11 @@ class MusicProblem(BinaryProblem):
 		)
 
 		notes = [np.random.choice(self.note_candidates[i]) for i in range(self.number_of_notes)]
+		# notes = [np.random.choice(list(range(self.number_of_available_notes))) for i in range(self.number_of_notes)]
+		
 		solution.variables[0] = notes
 		solution.variables[1] = self.note_candidates
+		solution.variables[2] = self.number_of_available_notes
 
 		return solution
 
