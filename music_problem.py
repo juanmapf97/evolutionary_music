@@ -17,33 +17,26 @@ class MusicProblem(BinaryProblem):
 		self.number_of_variables = 3 # Change to add time interval fitness
 		self.number_of_objectives = 1
 		self.number_of_constraints = 0
-		self.number_of_available_notes = 88
 		self.obj_labels = ['similarity']
 		self.obj_directions = [self.MAXIMIZE]
 		self.audio_comparer = AudioComparer(target_name)
 		self.notes_directory = NotesDirectory()
+		self.number_of_available_notes = len(self.notes_directory.NOTES)
 
 		self.note_candidates = self.set_frequency_ranges()
 
-	def set_frequency_ranges(self):
-		range_constant = 20 # List is empty, check what to do
-		
+	def set_frequency_ranges(self):		
 		sr, audio = wavfile.read(self.audio_comparer.target_name)
 
 		time, frequency, confidence, activation = crepe.predict(audio, sr, step_size=350)
-		# print(frequency)
-		# print(confidence)
+		
 		candidates = []
 		for i in range(self.number_of_notes):
 			if i < len(frequency):
-				min_freq = max([frequency[i] - range_constant, 0])
-				max_freq = frequency[i] + range_constant
-				candidate_notes = [i for i in range(self.number_of_available_notes) if self.notes_directory.get_note_frequency(i) >= min_freq and self.notes_directory.get_note_frequency(i) <= max_freq]
-					# filter(
-					# 	lambda i: self.notes_directory.get_note_frequency(i) >= min_freq 
-					# 	and self.notes_directory.get_note_frequency(i) <= max_freq, 
-					# 	range(self.number_of_available_notes)
-					# )
+				closest_note_position = self.notes_directory.get_closest_note(frequency[i])
+				range_num = self.notes_directory.get_candidate_range(confidence[i])
+				
+				candidate_notes = list(range(max(closest_note_position - range_num // 2, 0), min(closest_note_position + range_num // 2 + 1, self.number_of_available_notes)))
 				candidates.append(candidate_notes)
 			else:
 				candidates.append(list(range(self.number_of_available_notes)))
