@@ -18,44 +18,36 @@ def generate_audio_file(notes, dest):
 	combined = AudioSegment.empty()
 	for var in notes:
 		combined += notes_directory.get_audio_note(var)
-	combined.export(dest, format = 'wav')
+	combined.export('data/conc.wav', format = 'wav')
 
-def evo_music(source='data/songs/elise2.wav', dest='data/generated_songs/elise2.wav'):
-	# TODO(): label audio files with number of notes. joy=16, elise=9, jingle=12
-	target_file = source
-	number_of_notes = 15
-	if "joy" in source:
-		number_of_notes = 16
-	elif "elise" in source:
-		number_of_notes = 9
-	elif "jingle" in source:
-		number_of_notes = 11
-	problem = MusicProblem(target_file, number_of_notes)
-	population_size = 100
-	max_evaluations = 3000
+# Swan - 20
+# Hear & Soul - 18
+# twinkle - 28
+target_file = 'data/songs/swan.wav'
+number_of_notes = 20
+problem = MusicProblem(target_file, number_of_notes)
+population_size = 100
+max_evaluations = 1500
 
-	algorithm = GeneticAlgorithm(
-		problem = problem,
-		mutation = UniformMutation(probability = 1.0 / problem.number_of_notes),
-		crossover = UniformCrossover(1.0),
-		selection = BinaryTournamentSelection(),
-		population_size = population_size,
-		termination_criterion = StoppingByEvaluations(max = max_evaluations),
-		offspring_population_size = population_size
-	)
+algorithm = GeneticAlgorithm(
+	problem = problem,
+	mutation = UniformMutation(probability = 1.0 / problem.number_of_notes),
+	crossover = UniformCrossover(1.0),
+	selection = BinaryTournamentSelection(),
+	population_size = population_size,
+	termination_criterion = StoppingByEvaluations(max = max_evaluations),
+	offspring_population_size = population_size
+)
 
-	# Initialize progress bar observer
-	algorithm.observable.register(observer = PrintObjectivesObserver())
+# Initialize progress bar observer
+algorithm.observable.register(observer = PrintObjectivesObserver())
 
-	# Run algorithm and set results
-	algorithm.run()
-	front = algorithm.get_result()
+# for i in range(30):
+# Run algorithm and set results
+algorithm.run()
+front = algorithm.get_result()
 
-	# Create audio file from the best result
-	generate_audio_file(front.variables[0], dest)
-	print(front)
-
-	return front
-
-if __name__ == "__main__":
-	evo_music()
+# Create audio file from the best result
+generate_audio_file(front.variables[0])
+	# with open('results/11_results_ode_to_joy.txt', 'a') as f:
+	# 	f.write(f'\n{front}')

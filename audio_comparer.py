@@ -42,6 +42,8 @@ class AudioComparer():
 			return self.corr(source_name)
 		elif comparison == 'mse':
 			return self.mse(source_name)
+		elif comparison == 'pearson':
+			return self.pearson_compare(source_name)
 		# return self.signal_to_noise(source_name)
 
 	def correlation(self, source_fingerprint):
@@ -98,7 +100,19 @@ class AudioComparer():
 		)
 		
 		return (left_error + right_error) / 2
+
+
+	def pearson_compare(self, file_name):
+		rate, data = wav.read(file_name)
+
+		target = self.target_data[:,1]
+		test = data[:,1]
+		if len(test) > len(target):
+			test = test[:len(target)]
+		elif len(target) > len(test):
+			target = target[:len(test)]
 		
+		return abs(stats.pearsonr(test, target)[0])	
 
 	def get_ms_frames(self, segment, ms=350):
 		ms_frames = []
