@@ -21,8 +21,8 @@ def generate_audio_file(notes):
 # Swan - 20
 # Hear & Soul - 18
 # twinkle - 28
-target_file = 'data/songs/heart_soul.wav'
-number_of_notes = 18
+target_file = 'data/songs/swan.wav'
+number_of_notes = 20
 problem = MusicProblem(target_file, number_of_notes)
 population_size = 100
 max_evaluations = 1500

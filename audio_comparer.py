@@ -25,7 +25,7 @@ class AudioComparer():
 
 		return fingerprint
 
-	def compare(self, source_name: str, comparison='fingerprint'):
+	def compare(self, source_name: str, comparison='pearson'):
 		if comparison == 'fingerprint':
 			fingerprint = self.get_fingerprint(source_name)
 
@@ -59,12 +59,27 @@ class AudioComparer():
 	def fft_compare(self, file_name):
 		rate, data = wav.read(file_name)
 		fft_out = rfft(data)
-		return mean_squared_error(self.target_fft, fft_out)
+
+		target = self.target_fft
+		if len(fft_out) > len(self.target_fft):
+			fft_out = fft_out[:len(self.target_fft)]
+		elif len(self.target_fft) > len(fft_out):
+			target = self.target_fft[:len(fft_out)]
+
+		return mean_squared_error(target, fft_out)
 
 
 	def pearson_compare(self, file_name):
 		rate, data = wav.read(file_name)
-		return stats.pearsonr(data[:,1], self.target_data[:,1])[0]
+
+		target = self.target_data[:,1]
+		test = data[:,1]
+		if len(test) > len(target):
+			test = test[:len(target)]
+		elif len(target) > len(test):
+			target = target[:len(test)]
+		
+		return abs(stats.pearsonr(test, target)[0])
 		
 
 	def get_ms_frames(self, segment, ms=350):
