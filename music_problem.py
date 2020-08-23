@@ -37,6 +37,8 @@ class MusicProblem(BinaryProblem):
 
 		time, frequency, confidence, activation = crepe.predict(audio, sr, step_size=350)
 		
+		self.number_of_notes = len(self._onsets)
+
 		candidates = []
 		for i in range(self.number_of_notes):
 			if i < len(frequency):
