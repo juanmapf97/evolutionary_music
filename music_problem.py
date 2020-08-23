@@ -6,6 +6,8 @@ from audio_comparer import AudioComparer
 from jmetal.core.problem import BinaryProblem
 from jmetal.core.solution import BinarySolution
 
+from onset_detection import OnsetDetection
+
 # Analizing frequencies
 from scipy.io import wavfile
 import crepe
@@ -23,10 +25,15 @@ class MusicProblem(BinaryProblem):
 		self.notes_directory = NotesDirectory()
 		self.number_of_available_notes = len(self.notes_directory.NOTES)
 
+		self._onsets = []
+		self._durations = []
 		self.note_candidates = self.generate_candidates()
 
 	def generate_candidates(self):
 		sr, audio = wavfile.read(self.audio_comparer.target_name)
+
+		self._onsets = OnsetDetection.get_onset_times(self.audio_comparer.target_name)
+		self._durations = OnsetDetection.get_durations(self.audio_comparer.target_name)
 
 		time, frequency, confidence, activation = crepe.predict(audio, sr, step_size=350)
 		
@@ -65,6 +72,8 @@ class MusicProblem(BinaryProblem):
 		solution.variables[0] = notes
 		solution.variables[1] = self.note_candidates
 		solution.variables[2] = self.number_of_available_notes
+		solution.variables[3] = self._onsets
+		solution.variables[4] = self._durations
 
 		return solution
 
