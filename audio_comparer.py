@@ -30,7 +30,7 @@ class AudioComparer():
 
 		return fingerprint
 
-	def compare(self, source_name: str, comparison='mse'):
+	def compare(self, source_name: str, comparison='pearson'):
 		if comparison == 'fingerprint':
 			fingerprint = self.get_fingerprint(source_name)
 
