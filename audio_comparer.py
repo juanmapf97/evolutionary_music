@@ -4,9 +4,11 @@ from pydub import AudioSegment
 import numpy as np
 from scipy import stats, signal
 
+from scipy.stats.stats import pearsonr   
 from scipy.io import wavfile as wav
 from scipy.fftpack import rfft
 from sklearn.metrics import mean_squared_error
+from numpy.fft import fftn
 
 
 class AudioComparer():
@@ -16,8 +18,11 @@ class AudioComparer():
 		self.target_fingerprint = self.get_fingerprint(target_name)
 
 		rate, data = wav.read(target_name)
-		self.target_fft = rfft(data)
 		self.target_data = data
+		self.target_rate = rate
+		# Split the audio channels, and perform a FFT on them.
+		self.target_left_fft = 2.0 * np.abs(fftn(np.array(data)[:, 0])/len(np.array(data)[:, 0]))
+		self.target_right_fft = 2.0 * np.abs(fftn(np.array(data)[:, 1])/len(np.array(data)[:, 1]))
 
 	def get_fingerprint(self, file_name):
 		duration, fp_encoded = acoustid.fingerprint_file(file_name)
@@ -33,6 +38,10 @@ class AudioComparer():
 			return correlation
 		elif comparison == 'fft':
 			return self.fft_compare(source_name)
+		elif comparison == 'corr':
+			return self.corr(source_name)
+		elif comparison == 'mse':
+			return self.mse(source_name)
 		elif comparison == 'pearson':
 			return self.pearson_compare(source_name)
 		# return self.signal_to_noise(source_name)
@@ -56,17 +65,41 @@ class AudioComparer():
 
 		return covariance / 32
 
+	def corr(self, file_name):
+		rate, data = wav.read(file_name)
+
+		return pearsonr(self.target_data, data)
+
+	def mse(self, file_name):
+		rate, data = wav.read(file_name)
+		t_data = self.target_data
+		if len(t_data) > len(data):
+			t_data = t_data[:len(data)]
+		elif len(data) > len(t_data):
+			data = data[:len(t_data)]
+
+		return mean_squared_error(t_data, data)
+
 	def fft_compare(self, file_name):
 		rate, data = wav.read(file_name)
-		fft_out = rfft(data)
 
-		target = self.target_fft
-		if len(fft_out) > len(self.target_fft):
-			fft_out = fft_out[:len(self.target_fft)]
-		elif len(self.target_fft) > len(fft_out):
-			target = self.target_fft[:len(fft_out)]
+		left_fft = 2.0 * np.abs(fftn(np.array(data)[:, 0])/len(np.array(data)[:, 0]))
+		right_fft = 2.0 * np.abs(fftn(np.array(data)[:, 1])/len(np.array(data)[:, 1]))
 
-		return mean_squared_error(target, fft_out)
+		length = min(len(self.target_left_fft), len(left_fft))
+
+		# Get the mean squared error of the power spectrum of each separate channel.
+		left_error = mean_squared_error(
+			left_fft[:length//2],
+			self.target_left_fft[:length//2]
+		)
+
+		right_error = mean_squared_error(
+			right_fft[:length//2],
+			self.target_right_fft[:length//2]
+		)
+		
+		return (left_error + right_error) / 2
 
 
 	def pearson_compare(self, file_name):
@@ -79,8 +112,7 @@ class AudioComparer():
 		elif len(target) > len(test):
 			target = target[:len(test)]
 		
-		return abs(stats.pearsonr(test, target)[0])
-		
+		return abs(stats.pearsonr(test, target)[0])	
 
 	def get_ms_frames(self, segment, ms=350):
 		ms_frames = []
@@ -102,7 +134,6 @@ class AudioComparer():
 		ratio = self.signaltonoise(np_added)
 		print(ratio)
 		return ratio
-
 
 	def signaltonoise(a, axis=0, ddof=0):
 		a = np.asanyarray(a)

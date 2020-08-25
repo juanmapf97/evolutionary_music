@@ -23,9 +23,9 @@ class MusicProblem(BinaryProblem):
 		self.notes_directory = NotesDirectory()
 		self.number_of_available_notes = len(self.notes_directory.NOTES)
 
-		self.note_candidates = self.set_frequency_ranges()
+		self.note_candidates = self.generate_candidates()
 
-	def set_frequency_ranges(self):		
+	def generate_candidates(self):
 		sr, audio = wavfile.read(self.audio_comparer.target_name)
 
 		time, frequency, confidence, activation = crepe.predict(audio, sr, step_size=350)
@@ -49,7 +49,7 @@ class MusicProblem(BinaryProblem):
 		combined.export('data/conc.wav', format='wav')
 
 		solution.objectives[0] = \
-			self.audio_comparer.compare('data/conc.wav') * -1
+			self.audio_comparer.compare('data/conc.wav')
 
 		return solution
 
@@ -59,8 +59,8 @@ class MusicProblem(BinaryProblem):
 			self.number_of_objectives
 		)
 
+		# Choose notes from candidates.
 		notes = [np.random.choice(self.note_candidates[i]) for i in range(self.number_of_notes)]
-		# notes = [np.random.choice(list(range(self.number_of_available_notes))) for i in range(self.number_of_notes)]
 		
 		solution.variables[0] = notes
 		solution.variables[1] = self.note_candidates
