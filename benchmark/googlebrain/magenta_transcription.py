@@ -57,7 +57,7 @@ estimator = train_util.create_estimator(
 iterator = dataset.make_initializable_iterator()
 next_record = iterator.get_next()
 
-def transcribe_audio(data_path="musicnet/test_data", transcription_path="data/transcription/googlebrain/"):
+def transcribe_audio(data_path="maps/test_data", transcription_path="data/transcription/googlebrain/"):
     fns = [join(data_path, f) for f in listdir(data_path) if isfile(join(data_path, f))]
 
     duration_dataset = {
@@ -132,7 +132,7 @@ def transcribe_audio(data_path="musicnet/test_data", transcription_path="data/tr
         duration_dataset['inference_time_in_seconds'].append(now_now - now)
 
     df = pd.DataFrame(duration_dataset)
-    df.to_csv(transcription_path + 'musicnet_times.csv')
+    df.to_csv(transcription_path + 'maps_times.csv')
 
 if __name__ == "__main__":
     if len(sys.argv) == 3:
