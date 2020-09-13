@@ -2,6 +2,7 @@ import numpy as np
 from pydub import AudioSegment
 from notes_directory import NotesDirectory
 from audio_comparer import AudioComparer
+from onset_detection import OnsetDetection
 
 from jmetal.core.problem import BinaryProblem
 from jmetal.core.solution import BinarySolution
@@ -22,7 +23,8 @@ class MusicProblem(BinaryProblem):
 		self.audio_comparer = AudioComparer(target_name)
 		self.notes_directory = NotesDirectory()
 		self.number_of_available_notes = len(self.notes_directory.NOTES)
-
+		
+		self.target_name = target_name
 		self.note_candidates = self.generate_candidates()
 
 	def generate_candidates(self):
@@ -65,6 +67,10 @@ class MusicProblem(BinaryProblem):
 		solution.variables[0] = notes
 		solution.variables[1] = self.note_candidates
 		solution.variables[2] = self.number_of_available_notes
+
+		# Onset times and durations for each note
+		solution.variables[3] = OnsetDetection().get_onset_times(self.target_name)
+		solution.variables[4] = OnsetDetection().get_durations(self.target_name)
 
 		return solution
 

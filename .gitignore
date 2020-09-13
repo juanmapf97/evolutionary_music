@@ -10,3 +10,4 @@ results/
 data/
 *.zip
 *.csv
+benchmark/googlebrain/maps/

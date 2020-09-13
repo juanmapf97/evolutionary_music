@@ -12,7 +12,7 @@ from jmetal.algorithm.singleobjective.genetic_algorithm import GeneticAlgorithm
 from uniform_crossover import UniformCrossover
 from uniform_mutation import UniformMutation
 
-from onset_detection import get_number_of_notes
+from onset_detection import OnsetDetection
 
 def generate_audio_file(notes, dest):
 	notes_directory = NotesDirectory()
@@ -26,7 +26,7 @@ def generate_audio_file(notes, dest):
 # Hear & Soul - 18
 # twinkle - 28
 def evo_music(source='data/songs/elise2.wav', dest='data/generated_songs/elise2.wav'):
-	number_of_notes = get_number_of_notes(source)
+	number_of_notes = OnsetDetection().get_number_of_notes(source)
 	problem = MusicProblem(source, number_of_notes)
 	population_size = 100
 	max_evaluations = 1500
